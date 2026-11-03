@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="raporty-wersja" content="2026-11-02.0100">
+<meta name="raporty-wersja" content="2026-11-03.0030">
 <meta name="theme-color" content="#0B0F0D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -876,9 +876,9 @@ Object.assign(TX.pl, {
   dzienKierownik: function (d) { return 'Raport za ' + d + ' — poprawiasz jako kierownik; każda zmiana da AKTUALIZACJĘ raportu dziennego.'; },
   nowyDzien: function (d) { return 'Jest 6:00 — nowy dzień raportu: ' + d + '.'; },
   zFormularza: ' · formularz', zFormularzaStan: function (k, t) { return 'wysłany formularzem' + (t ? ' ' + t : '') + (k ? ' · ' + k : ''); },
-  czekaPlikT: 'plik T: czekam na odczyt ZDZISŁAWA (co 5 min)',
+  czekaPlikT: 'plik T: czekam na odczyt ZDZISŁAWA (co 10 min)',
   bezPlikuT: function (p) { return 'plik T: ' + (p || 'nie odczytany'); },
-  wynikBezT: 'Wynik będzie, gdy ZDZISŁAW odczyta Wynagrodzenie Kierowców z pliku T (co 5 minut). Możesz wysłać raport — Kontrolę policzy też mail „Raport dyspozytora”.',
+  wynikBezT: 'Wynik będzie, gdy ZDZISŁAW odczyta Wynagrodzenie Kierowców z pliku T (co 10 minut). Możesz wysłać raport — Kontrolę policzy też mail „Raport dyspozytora”.',
   czekaSiec: 'Raport zapisany na tym urządzeniu — czeka na sieć i pójdzie sam, gdy wróci. Nie zamykaj aplikacji na długo.',
   czekaSiecKr: 'czeka na sieć — pójdzie sam',
   mailRdPoszedl: function (t) { return 'Raport dzienny poszedł na rd@' + (t ? ' o ' + t : '') + '. Poprawka teraz da AKTUALIZACJĘ.'; },
@@ -907,9 +907,9 @@ Object.assign(TX.ua, {
   dzienKierownik: function (d) { return 'Звіт за ' + d + ' — виправляєте як керівник; кожна зміна дасть AKTUALIZACJA денного звіту.'; },
   nowyDzien: function (d) { return 'Уже 6:00 — новий день звіту: ' + d + '.'; },
   zFormularza: ' · форма', zFormularzaStan: function (k, t) { return 'надіслано формою' + (t ? ' ' + t : '') + (k ? ' · ' + k : ''); },
-  czekaPlikT: 'файл T: чекаю, поки ZDZISŁAW його прочитає (кожні 5 хв)',
+  czekaPlikT: 'файл T: чекаю, поки ZDZISŁAW його прочитає (кожні 10 хв)',
   bezPlikuT: function (p) { return 'файл T: ' + (p || 'не прочитано'); },
-  wynikBezT: 'Результат буде, коли ZDZISŁAW прочитає оплату водіям з файлу T (кожні 5 хвилин). Звіт можна надіслати — контроль порахує й лист „Raport dyspozytora”.',
+  wynikBezT: 'Результат буде, коли ZDZISŁAW прочитає оплату водіям з файлу T (кожні 10 хвилин). Звіт можна надіслати — контроль порахує й лист „Raport dyspozytora”.',
   czekaSiec: 'Звіт збережено на цьому пристрої — чекає на мережу й піде сам, коли вона з’явиться. Не закривайте застосунок надовго.',
   czekaSiecKr: 'чекає на мережу — піде сам',
   mailRdPoszedl: function (t) { return 'Денний звіт пішов на rd@' + (t ? ' о ' + t : '') + '. Виправлення тепер дасть AKTUALIZACJA.'; },
