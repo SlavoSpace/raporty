@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="raporty-wersja" content="2026-11-05.1530">
+<meta name="raporty-wersja" content="2026-11-05.1730">
 <meta name="theme-color" content="#0B0F0D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -63,6 +63,17 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .nag-p{display:flex;align-items:center;gap:12px;flex:0 0 auto}
 .nag-data{font-size:14px;color:var(--tekst2);white-space:nowrap}
 .nag-zegar{font-size:30px;padding-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 5.11: data i zegar w jednej linii, jak w managerze i Tablicy; tytuł dnia tą samą czcionką */
+.nag-czas{display:inline-flex;align-items:baseline;gap:10px;font-size:30px;padding-top:3px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.nag-czas .nag-data,.nag-czas .nag-zegar{font-size:inherit;color:inherit;padding-top:0}
+.h1.h1-dzien{font-size:34px;font-weight:400;line-height:1;letter-spacing:.05em}
+@media (max-width:760px){.nag-czas{font-size:24px}}
+/* 5.11, 17:19: rząd wyboru dnia (szkic Sławka) — Wybierz datę · Wczoraj · pokazana data · Dziś */
+.dni-rzad{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dni-rzad .drugi[aria-pressed="true"],.dni-wyb.wl{background:var(--aktywny);color:var(--naAktywnym);border-color:var(--aktywny)}
+.dni-wyb{position:relative;overflow:hidden;cursor:pointer}
+.dni-wyb input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;border:0;margin:0;padding:0;-webkit-appearance:none;appearance:none}
+.dni-data{display:inline-flex;align-items:center;min-height:48px;padding:3px 18px 0;border-radius:14px;border:1px solid var(--ramka2);background:var(--pow);color:var(--tekst);font-size:26px;white-space:nowrap;box-sizing:border-box}
 .pol{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap;color:var(--wolne)}
 .pol .kropka{width:8px;height:8px;border-radius:50%;background:currentColor}
 .pol[data-stan="offline"]{color:var(--zaduzo)}
@@ -1404,6 +1415,8 @@ function czasZ(s) { if (s == null || s === '') return null; var t = typeof s ===
 function iso(ms) { return new Date(ms).toISOString(); }
 function dataTxt(l, d) { d = d || S.dzien; if (!d) return ''; return (l === 'ua' ? DNI_UA : DNI)[dzienTygD(d)] + ' ' + (+d.slice(8, 10)) + '.' + d.slice(5, 7); }
 function dataPelna(d) { d = d || S.dzien; if (!d) return ''; return DNI[dzienTygD(d)] + ', ' + (+d.slice(8, 10)) + ' ' + MIES[+d.slice(5, 7) - 1] + ' ' + d.slice(0, 4); }
+// 5.11: data jak w managerze, Tablicy i Transporcie — „05-11 CZWARTEK”
+function dataKan(d, l) { d = d || S.dzien; if (!d) return ''; return d.slice(8, 10) + '-' + d.slice(5, 7) + ' ' + (l === 'ua' ? DNI_UA : DNI)[dzienTygD(d)].toUpperCase(); }
 function plikT(d) { d = d || S.dzien; return 'T-' + d.slice(2, 4) + '-' + d.slice(5, 7) + '-' + d.slice(8, 10); }
 function kiedyKr(ms) { if (!ms) return '—'; var c = czesci(ms); return (+c.dzien.slice(8, 10)) + '.' + c.dzien.slice(5, 7) + ' ' + hhmm(ms); }
 
@@ -1908,8 +1921,8 @@ function htmlNaglowek(o) {
     '<div class="nag-l"><span class="bebas nag-tyt">' + (o.tytul || 'RAPORTY') + '</span>' + (S.proba ? '<span class="chip-proba">' + esc(T.proba) + '</span>' : '') + '</div>' +
     '<div class="nag-s">' + (o.srodek || '') + '</div>' +
     '<div class="nag-p">' + (S.nowaWersja ? '<button type="button" class="nowa-w" data-a="przeladuj">' + esc(T.nowaWersja) + '</button>' : '') +
-    '<span class="nag-data">' + esc(S.dzien ? dataTxt(L()) : '') + '</span>' +
-    '<span class="bebas nag-zegar" id="zegar">' + hhmm(teraz()) + '</span>' + htmlPolaczenie() +
+    '<span class="bebas nag-czas"><span class="nag-data" id="zegar-d">' + esc(dataKan(czesci(teraz()).dzien, L())) + '</span>' +
+    '<span class="nag-zegar" id="zegar">' + hhmm(teraz()) + '</span></span>' + htmlPolaczenie() +
     (ja ? '<button type="button" class="menu-btn" data-a="menu" aria-label="' + esc(T.menu + ' — ' + T.zalogowany + ': ' + ja.imie) + '"><span class="awatar">' + esc((ja.imie || ja.login || '?').charAt(0).toUpperCase()) + '</span><span class="menu-imie">' + esc(ja.imie || ja.login) + '</span>' + I.menu + '</button>' : '') +
     '</div></header>';
 }
@@ -2281,9 +2294,13 @@ function opisWartosci(h) {
 function htmlDnia() {
   var al = alertyDnia(), wys = KOLEJNOSC.filter(wyslanyDnia).length, wczoraj = plusDni(S.dzis || S.dzien, -1);
   return htmlNaglowek({ tytul: 'RAPORTY<span class="tyt-dl"> DNIA</span>' }) + htmlBanery('pl') + '<div class="przew"><div class="rd-w">' +
-    '<div class="gora-r"><div><h1 class="h1">' + esc(dataPelna().charAt(0).toUpperCase() + dataPelna().slice(1)) + '</h1><p class="pod" id="rd-pod">' + wys + ' z 3 raportów wysłane</p></div>' +
-    '<div class="przyc-rzad"><div class="seg" role="group" aria-label="Dzień"><button type="button" data-a="dzienDnia" data-v="' + esc(S.dzis) + '" aria-pressed="' + (S.dzien === S.dzis) + '">Dziś</button><button type="button" data-a="dzienDnia" data-v="' + esc(wczoraj) + '" aria-pressed="' + (S.dzien === wczoraj) + '">Wczoraj</button></div>' +
-    '<button type="button" class="drugi" data-a="konta">Konta raportów</button><button type="button" class="drugi" data-a="doWyboru">Wypełniam sam</button></div></div>' +
+    '<div class="gora-r"><div class="dni-rzad" role="group" aria-label="Dzień raportów">' +
+    '<label class="drugi dni-wyb' + (S.dzien !== S.dzis && S.dzien !== wczoraj ? ' wl' : '') + '"><span>Wybierz datę</span>' +
+    '<input type="date" id="rd-data" value="' + esc(S.dzien) + '" min="' + esc(S.start ? czesci(S.start).dzien : '2026-11-02') + '" max="' + esc(S.dzis) + '" aria-label="Wybierz datę raportów"></label>' +
+    '<button type="button" class="drugi" data-a="dzienDnia" data-v="' + esc(wczoraj) + '" aria-pressed="' + (S.dzien === wczoraj) + '">Wczoraj</button>' +
+    '<span class="dni-data bebas" id="rd-dzien" aria-live="polite">' + esc(dataKan(S.dzien, 'pl')) + '</span>' +
+    '<button type="button" class="drugi" data-a="dzienDnia" data-v="' + esc(S.dzis) + '" aria-pressed="' + (S.dzien === S.dzis) + '">Dziś</button></div>' +
+    '<div class="przyc-rzad"><button type="button" class="drugi" data-a="konta">Konta raportów</button><button type="button" class="drugi" data-a="doWyboru">Wypełniam sam</button></div></div>' +
     '<div class="alerty" id="rd-al">' + al.map(function (a) { return '<div class="alert ' + a[0] + '">' + I.uwaga + '<span>' + esc(a[1]) + '</span></div>'; }).join('') + '</div>' +
     '<div class="rd-siatka"><div class="rd-kol" id="rd-l">' + htmlPrzychodyDnia() + KOLEJNOSC.map(htmlKartaRaportu).join('') + '</div>' +
     '<div class="rd-kol" id="rd-p">' + htmlMailDnia() + htmlZmianyDnia() + '</div></div></div></div>';
@@ -2294,7 +2311,7 @@ function odswiezDnia() {
   $('#rd-al').innerHTML = al.map(function (a) { return '<div class="alert ' + a[0] + '">' + I.uwaga + '<span>' + esc(a[1]) + '</span></div>'; }).join('');
   $('#rd-l').innerHTML = htmlPrzychodyDnia() + KOLEJNOSC.map(htmlKartaRaportu).join('');
   $('#rd-p').innerHTML = htmlMailDnia() + htmlZmianyDnia();
-  $('#rd-pod').textContent = KOLEJNOSC.filter(wyslanyDnia).length + ' z 3 raportów wysłane';
+  var rp = $('#rd-pod'); if (rp) rp.textContent = KOLEJNOSC.filter(wyslanyDnia).length + ' z 3 raportów wysłane';
 }
 
 // ============================================================
@@ -2773,7 +2790,13 @@ document.addEventListener('input', function (e) {
   if (t.id === 'knPin' && S.kn) { S.kn.f.pin = t.value.replace(/\D/g, '').slice(0, 6); if (t.value !== S.kn.f.pin) t.value = S.kn.f.pin; return; }
   if ((t.id === 'keImie' || t.id === 'kePin') && S.kn && S.kn.e) { czytajEd(); if (t.id === 'kePin') { var pp = t.value.replace(/\D/g, '').slice(0, 6); if (t.value !== pp) t.value = pp; S.kn.e.pin = pp; } }
 });
-document.addEventListener('change', function (e) { if (e.target.id === 'straty') zapiszTekstKroku(); });
+document.addEventListener('change', function (e) {
+  if (e.target.id === 'straty') zapiszTekstKroku();
+  if (e.target.id === 'rd-data' && /^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) zmienDzien(S.dzis && e.target.value > S.dzis ? S.dzis : e.target.value);   // 5.11: Wybierz datę
+});
+document.addEventListener('click', function (e) {   // 5.11: na komputerze kalendarz otwiera się od razu (na iPadzie i tak)
+  var t = e.target; if (t && t.id === 'rd-data' && t.showPicker && !('ontouchstart' in window)) { try { t.showPicker(); } catch (x) {} }
+});
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && S.warstwa) { zamknijWarstwe(); return; }
   var tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea') return;
@@ -2793,6 +2816,7 @@ function widoczna() { return document.visibilityState !== 'hidden'; }
 var _ostStan = 0, _ostMin = -1;
 function pilnuj() {
   var z = $('#zegar'); if (z) z.textContent = hhmm(teraz());
+  var zd = $('#zegar-d'); if (zd) { var dk = dataKan(czesci(teraz()).dzien, L()); if (zd.textContent !== dk) zd.textContent = dk; }
   if (!S.ja || !baza.sesja() || S.ekran === 'start' || S.ekran === 'ladowanie' || S.ekran === 'konto') return;
   var dz = dzienRaportu(teraz());
   if (S.dzis && dz !== S.dzis) {                      // minęła 6:00 rano — nowy dzień raportu
