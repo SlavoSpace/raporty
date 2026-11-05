@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="raporty-wersja" content="2026-11-03.0030">
+<meta name="raporty-wersja" content="2026-11-05.1250">
 <meta name="theme-color" content="#0B0F0D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -996,9 +996,9 @@ function bladLogowania(j, status) {
   if (status === 429) return 'Za dużo prób — odczekaj minutę.';
   return (j && (j.msg || j.message || j.error_description)) || ('Logowanie nie powiodło się (' + status + ').');
 }
-async function siec(adres, opcje) {
+async function siec(adres, opcje, ms) {
   var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var t = ac ? setTimeout(function () { ac.abort(); }, 15000) : null;
+  var t = ac ? setTimeout(function () { ac.abort(); }, ms || 15000) : null;
   try { return await fetch(adres, Object.assign({}, opcje, { signal: ac ? ac.signal : undefined })); }
   catch (e) { var b = new Error('Brak połączenia z bazą.'); b.siec = true; throw b; }
   finally { if (t) clearTimeout(t); }
@@ -1024,7 +1024,21 @@ function Baza(url, klucz) {
       zalogowano: zal || (sesja && sesja.zalogowano) || teraz(), user: u
     };
   }
-  async function zaloguj(email, pin) { var j = await auth('token?grant_type=password', { email: email, password: pin }); ustaw(zrob(j, teraz())); return sesja; }
+  // Logowanie (od 2026-11-05, Etap 3 „most”): wspólna funkcja dysza-logowanie — nowy login i PIN z managera albo stary login;
+  // funkcja wydaje sesję dotychczasowego konta tej osoby w Raportach (konto raportu albo — u kierownika i szefa — konto z Tablicy).
+  // Gdy funkcja nie odpowiada (sieć, awaria serwera) — logowanie jak dotąd, wprost hasłem konta.
+  // Na funkcję czekamy do 30 s (5.11, 12:35: przy wolnej bazie logowanie trwało 15 s), na resztę zapytań — 15 s.
+  async function zaloguj(email, pin) {
+    var r = null, j = null;
+    try {
+      r = await siec(url + '/functions/v1/dysza-logowanie', { method: 'POST', headers: { apikey: klucz, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ akcja: 'zaloguj', login: String(email || '').split('@')[0], pin: pin, modul: 'raporty' }) }, 30000);
+      var tx = await r.text(); try { j = tx ? JSON.parse(tx) : null; } catch (e) { }
+    } catch (e) { r = null; }
+    if (r && r.ok && j && j.sesja && j.sesja.access_token) { ustaw(zrob(j.sesja, teraz())); return sesja; }
+    if (r && [400, 401, 403, 429, 503].indexOf(r.status) >= 0) { var b = new Error((j && j.blad) || bladLogowania(j, r.status)); b.status = r.status; throw b; }
+    var j2 = await auth('token?grant_type=password', { email: email, password: pin }); ustaw(zrob(j2, teraz())); return sesja;
+  }
   async function wyloguj() { var t = sesja && sesja.access_token; ustaw(null); if (t) { try { await auth('logout', {}, t); } catch (e) { } } }
   async function odswiez() {
     if (odsw) return odsw;
